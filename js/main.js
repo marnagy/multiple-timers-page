@@ -55,11 +55,14 @@ class Timer{
         this.ended = this.hours === 0 && this.minutes === 0 &&
             this.seconds === 0 && this.miliseconds === 0
     }
+    getCurrentState() {
+        return `${zeroPad(this.hours, 2)}:${zeroPad(this.minutes, 2)}:${zeroPad(this.seconds, 2)}`
+    }
     createDomContainer(){
         const container = document.createElement('div')
         container.setAttribute('class', 'timer-container')
         const new_elem = document.createElement('h3')
-        new_elem.innerHTML = `${zeroPad(this.hours, 2)}:${zeroPad(this.minutes, 2)}:${zeroPad(this.seconds, 2)}.${zeroPad( Math.floor(this.miliseconds / 10), 2)}`
+        new_elem.innerHTML = this.getCurrentState()
         const remove_button = document.createElement('button')
         remove_button.setAttribute('class', 'remove-button')
         remove_button.textContent = 'X'
@@ -70,26 +73,26 @@ class Timer{
         container.appendChild(remove_button)
         return container
     }
+    updateContainerContent(container){
+        const header = container.children[0]
+        const button = container.children[1]
+        const newHeader = document.createElement('h3')
+        newHeader.innerHTML = this.getCurrentState()
+        container.replaceChild(newHeader, header)
+        button.onclick = () => remove_timer(this.id)
+    }
 }
 
 const timers = new Array()
 let timer_number = 0
 const timers_container = document.getElementById('timers-container')
-const timerMiliseconds = 10
+const timerMiliseconds = 1_000
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms))
 const alarm = new Audio('./alarm.mp3');
 alarm.loop = false
 const hourElement = document.getElementById('hours-input')
 const minutesElement = document.getElementById('minutes-input')
 const secondsElement = document.getElementById('seconds-input')
-
-// console.log(alarm)
-// console.log(`Can alarm play? ${alarm.can}`)
-// alarm.addEventListener("canplaythrough", event => {
-//     /* the audio is now playable; play it if permissions allow */
-//     console.log('Alarm can now be played!')
-//     //alarm.play()
-//   });
 
 function zeroPad(num, places){
     return String(num).padStart(places, '0')
@@ -111,6 +114,8 @@ function add_timer(){
     secondsElement.value = 0
 
     timers.push(timer)
+    // update DOM
+    timers_container.appendChild( timer.createDomContainer() )
 }
 
 async function async_loop() {
@@ -122,7 +127,7 @@ async function async_loop() {
             timer.update(timerMiliseconds)
             
             if ( timer.ended ){
-                console.log(`Timer ${timer.id} has ended.`)
+                //console.log(`Timer ${timer.id} has ended.`)
                 alarm.play()
                 return
             }
@@ -135,28 +140,17 @@ async function async_loop() {
             })))
 
         const combinedArr = combine(timers, timers_container.children)
-        //const timersToRemove = new Array()
 
         combinedArr.forEach(element => {
             const timer = element[0]
             const DomElem = element[1]
 
-            // create timer container
             if ( !DomElem ) {
+                // create timer container
                 timers_container.appendChild( timer.createDomContainer() )
             }
-            // remove timer and container
-            // else if ( timer.ended || timer.removed ){
-            //     timers_container.removeChild(DomElem)
-            //     timersToRemove.push(timer) // remove_timer(timer.id)
-            // }
             else {
-                const header = DomElem.children[0]
-                const button = DomElem.children[1]
-                const newHeader = document.createElement('h3')
-                newHeader.innerHTML = `${zeroPad(timer.hours, 2)}:${zeroPad(timer.minutes, 2)}:${zeroPad(timer.seconds, 2)}.${zeroPad( Math.floor(timer.miliseconds / 10), 2)}`
-                DomElem.replaceChild(newHeader, header)
-                button.onclick = () => remove_timer(timer.id)
+                timer.updateContainerContent(DomElem)
             }
         });
 
@@ -183,7 +177,7 @@ function combine(arr1, arr2){
 
 function remove_timer(id){
     console.log(`Removing timer with id ${id}`)
-
+    alarm.pause()
     const index = removeElement((timer) => timer.id === id)
     if ( index >= 0 ){
         removeDomElementAt(index)
