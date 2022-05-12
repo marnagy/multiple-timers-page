@@ -86,13 +86,13 @@ class Timer{
 const timers = new Array()
 let timer_number = 0
 const timers_container = document.getElementById('timers-container')
-const timerMiliseconds = 1_000
-const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms))
-const alarm = new Audio('./alarm.mp3');
-alarm.loop = false
 const hourElement = document.getElementById('hours-input')
 const minutesElement = document.getElementById('minutes-input')
 const secondsElement = document.getElementById('seconds-input')
+const timerMiliseconds = 1_000
+const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms))
+const alarm = document.getElementById('alarm-audio')
+alarm.loop = true
 
 function zeroPad(num, places){
     return String(num).padStart(places, '0')
@@ -104,8 +104,9 @@ function add_timer(){
     const minutes = parseInt(minutesElement.value)
     const seconds = parseInt(secondsElement.value)
 
-    if ( hours === 0 && minutes === 0 && seconds === 0)
-        return
+    if ( hours === 0 && minutes === 0 && seconds === 0){
+
+    }
 
     const timer = new Timer(timer_number++, hours, minutes, seconds)
 
@@ -138,6 +139,19 @@ async function async_loop() {
                 id: timer.id
                 ended: timer.ended
             })))
+        
+        function combine(arr1, arr2){
+            const zipped = new Array(arr1.length)
+            for (let i = 0; i < arr1.length; i++) {
+                if ( arr2.length <= i ){
+                    zipped.push( [arr1[i], undefined] )
+                }
+                else{
+                    zipped.push( [arr1[i], arr2[i]] )
+                }
+            }
+            return zipped.reverse()
+        }
 
         const combinedArr = combine(timers, timers_container.children)
 
@@ -162,18 +176,7 @@ async function async_loop() {
     }
 }
 
-function combine(arr1, arr2){
-    const zipped = new Array(arr1.length)
-    for (let i = 0; i < arr1.length; i++) {
-        if ( arr2.length <= i ){
-            zipped.push( [arr1[i], undefined] )
-        }
-        else{
-            zipped.push( [arr1[i], arr2[i]] )
-        }
-    }
-    return zipped.reverse()
-}
+
 
 function remove_timer(id){
     console.log(`Removing timer with id ${id}`)
