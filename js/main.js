@@ -132,11 +132,11 @@ function update(){
         }
     })
 
-    if ( timers.length > 0 )
-        console.log(JSON.stringify(timers.forEach(timer => {
-            id: timer.id
-            ended: timer.ended
-        })))
+    // if ( timers.length > 0 )
+    //     console.log(JSON.stringify(timers.forEach(timer => {
+    //         id: timer.id
+    //         ended: timer.ended
+    //     })))
     
     function combine(arr1, arr2){
         const zipped = new Array(arr1.length)
@@ -234,6 +234,16 @@ function removeDomElementsFromEnd(amount){
     }
 }
 
-setInterval(update, timerMiliseconds);
 const add_timer_button = document.getElementById('add-button')
 add_timer_button.onclick = () => add_timer()
+
+const worker = new Worker('./js/worker.js')
+
+// update tick
+worker.addEventListener('message', e => {
+    update()
+})
+
+worker.postMessage('start')
+
+//setInterval(update, timerMiliseconds);
