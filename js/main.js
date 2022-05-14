@@ -119,64 +119,53 @@ function add_timer(){
     timers_container.appendChild( timer.createDomContainer() )
 }
 
-async function async_loop() {
-    while (true) {
-        timers.forEach(timer => {
-            if ( timer.removed )
-                return
+function update(){
+    timers.forEach(timer => {
+        if ( timer.removed )
+            return
 
-            timer.update(timerMiliseconds)
-            
-            if ( timer.ended ){
-                //console.log(`Timer ${timer.id} has ended.`)
-                alarm.play()
-                return
-            }
-        })
-
-        if ( timers.length > 0 )
-            console.log(JSON.stringify(timers.forEach(timer => {
-                id: timer.id
-                ended: timer.ended
-            })))
+        timer.update(timerMiliseconds)
         
-        function combine(arr1, arr2){
-            const zipped = new Array(arr1.length)
-            for (let i = 0; i < arr1.length; i++) {
-                if ( arr2.length <= i ){
-                    zipped.push( [arr1[i], undefined] )
-                }
-                else{
-                    zipped.push( [arr1[i], arr2[i]] )
-                }
-            }
-            return zipped.reverse()
+        if ( timer.ended ){
+            alarm.play()
+            return
         }
+    })
 
-        const combinedArr = combine(timers, timers_container.children)
-
-        combinedArr.forEach(element => {
-            const timer = element[0]
-            const DomElem = element[1]
-
-            if ( !DomElem ) {
-                // create timer container
-                timers_container.appendChild( timer.createDomContainer() )
+    if ( timers.length > 0 )
+        console.log(JSON.stringify(timers.forEach(timer => {
+            id: timer.id
+            ended: timer.ended
+        })))
+    
+    function combine(arr1, arr2){
+        const zipped = new Array(arr1.length)
+        for (let i = 0; i < arr1.length; i++) {
+            if ( arr2.length <= i ){
+                zipped.push( [arr1[i], undefined] )
             }
-            else {
-                timer.updateContainerContent(DomElem)
+            else{
+                zipped.push( [arr1[i], arr2[i]] )
             }
-        });
-
-        // timersToRemove.forEach(elem => {
-        //     remove_timer(elem.id)
-        // })
-
-        await sleep(timerMiliseconds)
+        }
+        return zipped.reverse()
     }
+
+    const combinedArr = combine(timers, timers_container.children)
+
+    combinedArr.forEach(element => {
+        const timer = element[0]
+        const DomElem = element[1]
+
+        if ( !DomElem ) {
+            // create timer container
+            timers_container.appendChild( timer.createDomContainer() )
+        }
+        else {
+            timer.updateContainerContent(DomElem)
+        }
+    })
 }
-
-
 
 function remove_timer(id){
     console.log(`Removing timer with id ${id}`)
@@ -184,8 +173,6 @@ function remove_timer(id){
     const index = removeElement((timer) => timer.id === id)
     if ( index >= 0 ){
         removeDomElementAt(index)
-        // const diff = timers_container.children.length - (timers.length - 1)
-        // removeDomElementsFromEnd(diff)
     }
 }
 
@@ -247,7 +234,6 @@ function removeDomElementsFromEnd(amount){
     }
 }
 
+setInterval(update, timerMiliseconds);
 const add_timer_button = document.getElementById('add-button')
 add_timer_button.onclick = () => add_timer()
-
-async_loop()
